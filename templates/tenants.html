@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tenant Management</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="container mt-4">
+      <h1 class="text-center">Tenant List</h1>
+
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div
+        class="alert alert-{{ category }} alert-dismissible fade show"
+        role="alert"
+      >
+        {{ message }}
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Close"
+        ></button>
+      </div>
+      {% endfor %} {% endif %} {% endwith %}
+
+      <div class="mb-3 text-end">
+        <button
+          class="btn btn-primary"
+          data-bs-toggle="modal"
+          data-bs-target="#addTenantModal"
+        >
+          Add Tenant
+        </button>
+      </div>
+
+      <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Address</th>
+            <th>City</th>
+            <th>Country</th>
+            <th>Established</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Reg. No</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for tenant in tenants %}
+          <tr>
+            <td>{{ tenant[0] }}</td>
+            <td>{{ tenant[1] }}</td>
+            <td>{{ tenant[2] }}</td>
+            <td>{{ tenant[3] }}</td>
+            <td>{{ tenant[4] }}</td>
+            <td>{{ tenant[5] }}</td>
+            <td>{{ tenant[6] }}</td>
+            <td>{{ tenant[7] }}</td>
+            <td>{{ tenant[8] }}</td>
+            <td>
+              <button
+                class="btn btn-sm btn-warning"
+                data-bs-toggle="modal"
+                data-bs-target="#editTenantModal{{ tenant[0] }}"
+              >
+                Update
+              </button>
+              <form
+                action="{{ url_for('delete_tenant') }}"
+                method="POST"
+                style="display: inline"
+              >
+                <input type="hidden" name="id" value="{{ tenant[0] }}" />
+                <button
+                  type="submit"
+                  class="btn btn-danger btn-sm"
+                  onclick="return confirm('Are you sure you want to delete {{ tenant[1] }}? This action cannot be undone.')"
+                >
+                  Delete
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Add Tenant Modal -->
+    <div
+      class="modal fade"
+      id="addTenantModal"
+      tabindex="-1"
+      aria-labelledby="addTenantLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <form action="{{ url_for('add_tenants') }}" method="POST">
+            <div class="modal-header">
+              <h5 class="modal-title" id="addTenantLabel">Add New Tenant</h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+
+            <div class="modal-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Tenant Name</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="tenant_name"
+                    required
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Address</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="address"
+                    required
+                  />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">City</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="city"
+                    required
+                  />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Country</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="country"
+                    required
+                  />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Established Date</label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    name="established_date"
+                    required
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Email</label>
+                  <input
+                    type="email"
+                    class="form-control"
+                    name="email"
+                    required
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Phone</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="phone"
+                    required
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Registration Number</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="registration_number"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-success">Save Tenant</button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Update Tenant Modals -->
+    {% for tenant in tenants %}
+    <div
+      class="modal fade"
+      id="editTenantModal{{ tenant[0] }}"
+      tabindex="-1"
+      aria-labelledby="editTenantLabel{{ tenant[0] }}"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <form
+            action="{{ url_for('update_tenant') }}"
+            {#
+            REMOVED
+            tenant_id="tenant[0]"
+            from
+            here
+            #}
+            method="POST"
+          >
+            <div class="modal-header">
+              <h5 class="modal-title" id="editTenantLabel{{ tenant[0] }}">
+                Edit Tenant
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+
+            <div class="modal-body">
+              {# IMPORTANT: Hidden input to pass the ID to the Flask route #}
+              <input type="hidden" name="id" value="{{ tenant[0] }}" />
+
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Tenant Name</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="tenant_name"
+                    value="{{ tenant[1] }}"
+                    required
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Address</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="address"
+                    value="{{ tenant[2] }}"
+                    required
+                  />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">City</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="city"
+                    value="{{ tenant[3] }}"
+                    required
+                  />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Country</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="country"
+                    value="{{ tenant[4] }}"
+                    required
+                  />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Established Date</label>
+                  {# Ensure date format is correct for HTML input type="date" #}
+                  <input
+                    type="date"
+                    class="form-control"
+                    name="established_date"
+                    value="{{ tenant[5].strftime('%Y-%m-%d') if tenant[5] else '' }}"
+                    {#
+                    Format
+                    date
+                    for
+                    HTML
+                    #}
+                    required
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Email</label>
+                  <input
+                    type="email"
+                    class="form-control"
+                    name="email"
+                    value="{{ tenant[6] }}"
+                    required
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Phone</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="phone"
+                    value="{{ tenant[7] }}"
+                    required
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Registration Number</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="registration_number"
+                    value="{{ tenant[8] }}"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-primary">Update</button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
