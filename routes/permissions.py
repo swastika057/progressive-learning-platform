@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
-from database import get_db_connection
+from database.database import get_db_connection
 from flask_bcrypt import Bcrypt
-from main import bcrypt
+from extension import bcrypt
 from utils.decorators import jwt_required
 from datetime import datetime, timedelta, timezone
 

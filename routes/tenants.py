@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify
 from database.database import get_db_connection
-from extension import Bcrypt
 from utils.decorators import jwt_required
 from datetime import datetime, timedelta, timezone
+
 
 tenant_bp = Blueprint('tenants', __name__)
 
