@@ -6,7 +6,12 @@ from routes.register import register
 from routes.roles import roles_bp
 from routes.role_permissions import roles_permission
 from routes.user_roles import user_roles
-
+from routes.academic_years import academic_years
+from routes.class_subject import class_sub
+from routes.employees import employees
+from routes.classes import classes
+from routes.student import student
+from routes.subjects import subjects
 # Central place to register all route blueprints
 
 
@@ -18,3 +23,9 @@ def register_routes(app):
     app.register_blueprint(roles_bp)
     app.register_blueprint(roles_permission)
     app.register_blueprint(user_roles)
+    app.register_blueprint(academic_years)
+    app.register_blueprint(class_sub)
+    app.register_blueprint(employees)
+    app.register_blueprint(classes)
+    app.register_blueprint(student)
+    app.register_blueprint(subjects)
