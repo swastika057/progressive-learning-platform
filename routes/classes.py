@@ -6,11 +6,11 @@ from utils.decorators import jwt_required
 from datetime import datetime, timedelta, timezone
 
 
-classes = Blueprint('Classes', __name__)
+classes_bp = Blueprint('classes', __name__)
 # ---------CLASSES--------
 
 
-@classes.route('/classes/add', methods=['POST'])
+@classes_bp.route('/classes', methods=['POST'])
 @jwt_required
 # @admin_required
 def add_class():
@@ -42,7 +42,7 @@ def add_class():
         conn.close()
 
 
-@classes.route('/classes', methods=['GET'])
+@classes_bp .route('/classes', methods=['GET'])
 @jwt_required
 # @admin_required
 def get_classes():
