@@ -15,6 +15,8 @@ from routes.subjects import subjects_bp
 from routes.permissions import permissions_bp
 from routes.enrollment import enrollment_bp
 from routes.milestone import milestones_bp
+from routes.indicator_items import indicator_items_bp
+from routes.indicators import indicators_bp
 # Central place to register all route blueprints
 
 
@@ -35,3 +37,5 @@ def register_routes(app):
     app.register_blueprint(permissions_bp)
     app.register_blueprint(enrollment_bp)
     app.register_blueprint(milestones_bp)
+    app.register_blueprint(indicators_bp)
+    app.register_blueprint(indicator_items_bp)
