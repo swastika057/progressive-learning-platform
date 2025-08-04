@@ -14,6 +14,7 @@ from routes.student import students_bp
 from routes.subjects import subjects_bp
 from routes.permissions import permissions_bp
 from routes.enrollment import enrollment_bp
+from routes.milestone import milestones_bp
 # Central place to register all route blueprints
 
 
@@ -33,3 +34,4 @@ def register_routes(app):
     app.register_blueprint(subjects_bp)
     app.register_blueprint(permissions_bp)
     app.register_blueprint(enrollment_bp)
+    app.register_blueprint(milestones_bp)
