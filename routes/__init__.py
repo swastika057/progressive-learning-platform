@@ -11,7 +11,7 @@ from routes.class_subject import class_sub
 from routes.employees import employees_bp
 from routes.classes import classes
 from routes.student import student
-from routes.subjects import subjects
+from routes.subjects import subjects_bp
 from routes.permissions import permissions_bp
 # Central place to register all route blueprints
 
@@ -29,5 +29,5 @@ def register_routes(app):
     app.register_blueprint(employees_bp)
     app.register_blueprint(classes)
     app.register_blueprint(student)
-    app.register_blueprint(subjects)
+    app.register_blueprint(subjects_bp)
     app.register_blueprint(permissions_bp)
