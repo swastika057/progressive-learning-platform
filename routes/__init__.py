@@ -4,7 +4,7 @@ from routes.users import users_bp
 from routes.tenants import tenant_bp
 from routes.register import register
 from routes.roles import roles_bp
-from routes.role_permissions import roles_permission
+from routes.role_permissions import role_permissions_bp
 from routes.user_roles import user_roles_bp
 from routes.academic_years import academic_years
 from routes.class_subject import class_sub
@@ -22,7 +22,7 @@ def register_routes(app):
     app.register_blueprint(tenant_bp)
     app.register_blueprint(register)
     app.register_blueprint(roles_bp)
-    app.register_blueprint(roles_permission)
+    app.register_blueprint(role_permissions_bp)
     app.register_blueprint(user_roles_bp)
     app.register_blueprint(academic_years)
     app.register_blueprint(class_sub)
