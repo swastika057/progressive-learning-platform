@@ -5,13 +5,13 @@ from extension import bcrypt
 from utils.decorators import jwt_required
 from datetime import datetime, timedelta, timezone
 
-roles = Blueprint('Roles', __name__)
+permissions_bp = Blueprint('permissions', __name__)
 
 
-@roles.route('/permissions', methods=['GET'])
+@permissions_bp.route('/permissions', methods=['GET'])
 @jwt_required
 # @admin_required
-def permissions():
+def get_permissions():
     tenant_id = request.current_user_jwt_claims.get("tenant_id")
     conn = get_db_connection()
     try:
@@ -31,7 +31,7 @@ def permissions():
         conn.close()
 
 
-@roles.route('/permissions/add', methods=['POST'])
+@permissions_bp.route('/permissions', methods=['POST'])
 @jwt_required
 # @admin_required
 def add_permission():
