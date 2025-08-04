@@ -4,12 +4,12 @@ from extension import bcrypt
 from utils.decorators import jwt_required
 from datetime import datetime, timedelta, timezone
 
-roles_bp = Blueprint('Roles', __name__)
+roles_bp = Blueprint('roles', __name__)
 
 
-@roles_bp.route('/Roles', methods=['GET'])
+@roles_bp.route('/roles', methods=['GET'])
 @jwt_required
-def roles():
+def get_roles():
     conn = get_db_connection()
     if not conn:
         return jsonify({"error": "Database connection failed"}), 500
@@ -34,7 +34,7 @@ def roles():
         conn.close()
 
 
-@roles_bp.route('/Roles/add', methods=['POST'])
+@roles_bp.route('/roles', methods=['POST'])
 @jwt_required
 # @admin_required
 def add_roles():
@@ -65,10 +65,10 @@ def add_roles():
         conn.close()
 
 
-@roles_bp.route('/Roles/update/<uuid:role_id>', methods=['PUT'])
+@roles_bp.route('/roles/<uuid:role_id>', methods=['PUT'])
 @jwt_required
 # @admin_required
-def update_roles(role_id):
+def update_role(role_id):
     data = request.get_json()
     if not data:
         return jsonify({"error": "Missing or invalid JSON"}), 400
@@ -105,10 +105,10 @@ def update_roles(role_id):
         conn.close()
 
 
-@roles_bp.route('/Roles/delete/<uuid:role_id>', methods=['DELETE'])
+@roles_bp.route('/roles/<uuid:role_id>', methods=['DELETE'])
 @jwt_required
 # @admin_required
-def roles_del(role_id):
+def del_role(role_id):
     conn = get_db_connection()
     if not conn:
         return jsonify({"error": "Database connection failed"}), 500

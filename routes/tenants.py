@@ -9,7 +9,7 @@ tenant_bp = Blueprint('tenants', __name__)
 
 @tenant_bp.route('/tenants', methods=['GET'])
 @jwt_required
-def tenants():
+def get_tenants():
     user_claims = request.current_user_jwt_claims
     conn = get_db_connection()
     if not conn:
@@ -26,7 +26,7 @@ def tenants():
         else:
             # Non-admins only see their own tenant
             cur.execute("""
-                SELECT id, tenant_name, address, city, country, established_date, email, phone, registration_number, is_active, created_at,password_hash
+                SELECT id, tenant_name, address, city, country, established_date, email, phone, registration_number, is_active, created_at
                 FROM Tenants
                 WHERE id = %s
             """, (user_claims.get("tenant_id"),))
@@ -46,7 +46,7 @@ def tenants():
                 "registration_number": tenant[8],
                 "is_active": tenant[9],
                 "created_at": tenant[10].strftime('%Y-%m-%d %H:%M:%S') if tenant[10] else None,
-                "password_hash": tenant[11]
+
             })
 
         return jsonify(tenants=tenants_list), 200
@@ -60,10 +60,10 @@ def tenants():
         conn.close()
 
 
-@tenant_bp.route('/tenants/update/<uuid:tenant_id>', methods=['PUT'])
+@tenant_bp.route('/tenants/<uuid:id>', methods=['PUT'])
 @jwt_required  # Added decorator
 # @admin_required  # Added decorator
-def update_tenant(tenant_id):
+def update_tenant(id):
     # user_claims already checked by admin_required
     data = request.get_json()
     if not data:
@@ -103,7 +103,7 @@ def update_tenant(tenant_id):
             registration_number=%s,
             is_active=%s
             WHERE id=%s
-        """, (tenant_name, address, city, country, established_date, email, phone, registration_number, is_active, str(tenant_id)))
+        """, (tenant_name, address, city, country, established_date, email, phone, registration_number, is_active, str(id)))
 
         conn.commit()
         # Corrected flash message
@@ -117,10 +117,10 @@ def update_tenant(tenant_id):
         conn.close()
 
 
-@tenant_bp.route("/tenants/delete/<uuid:tenant_id>", methods=["DELETE"])
+@tenant_bp.route("/tenants/<uuid:id>", methods=["DELETE"])
 @jwt_required  # Added decorator
 # @admin_required  # Added decorator
-def delete_tenant(tenant_id):
+def delete_tenant(id):
 
     conn = get_db_connection()
 
@@ -128,13 +128,13 @@ def delete_tenant(tenant_id):
         return jsonify({"error": "Database connection failed"}), 500
     cur = conn.cursor()
     try:
-        cur.execute("DELETE FROM Tenants WHERE id=%s", (tenant_id,))
+        cur.execute("DELETE FROM Tenants WHERE id=%s", (id,))
         conn.commit()
-        return jsonify({"message": "Tenant updated successfully"}), 200
+        return jsonify({"message": "Tenant deleted successfully"}), 200
 
     except Exception as e:
         conn.rollback()
-        return jsonify({"error": f"Error updating tenant: {e}"}), 500
+        return jsonify({"error": f"Error deleting tenant: {e}"}), 500
     finally:
         cur.close()
         conn.close()

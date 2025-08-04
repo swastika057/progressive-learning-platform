@@ -5,10 +5,10 @@ from utils.decorators import jwt_required
 from datetime import datetime, timedelta, timezone
 from psycopg2.extras import RealDictCursor
 
-users = Blueprint('Users', __name__)
+users_bp = Blueprint('users', __name__)
 
 
-@users.route('/Users', methods=['GET'])
+@users_bp.route('/users', methods=['GET'])
 @jwt_required
 # @admin_required
 def get_users():
@@ -64,7 +64,7 @@ def get_users():
         conn.close()
 
 
-@users.route("/users/add", methods=["POST"])
+@users_bp.route("/users", methods=["POST"])
 @jwt_required
 # @admin_required
 def add_user():
@@ -119,7 +119,7 @@ def add_user():
         conn.close()
 
 
-@users.route("/users/update/<uuid:user_id>", methods=["PUT"])
+@users_bp.route("/users/<uuid:user_id>", methods=["PUT"])
 @jwt_required
 # @admin_required
 def update_user(user_id):
@@ -184,7 +184,7 @@ def update_user(user_id):
         conn.close()
 
 
-@users.route("/users/delete/<uuid:user_id>", methods=["DELETE"])
+@users_bp.route("/users/<uuid:user_id>", methods=["DELETE"])
 @jwt_required
 # @admin_required
 def del_users(user_id):
