@@ -6,10 +6,10 @@ from utils.decorators import jwt_required
 from datetime import datetime, timedelta, timezone
 
 
-student = Blueprint('Student', __name__)
+students_bp = Blueprint('student', __name__)
 
 
-@student.route('/students/add', methods=['POST'])
+@students_bp.route('/students', methods=['POST'])
 @jwt_required
 # @admin_required
 def add_student():
@@ -53,7 +53,7 @@ def add_student():
 
 
 # -------------------- GET ALL STUDENTS --------------------
-@student.route('/students', methods=['GET'])
+@students_bp.route('/students', methods=['GET'])
 @jwt_required
 # @admin_required
 def get_students():
@@ -61,7 +61,7 @@ def get_students():
     cur = conn.cursor()
     try:
         cur.execute("""
-            SELECT * FROM Students
+            SELECT u. FROM Students
         """)
         students = cur.fetchall()
         cols = [desc[0] for desc in cur.description]
@@ -75,7 +75,7 @@ def get_students():
 
 
 # -------------------- UPDATE STUDENT --------------------
-@student.route('/students/update/<uuid:user_id>', methods=['PUT'])
+@students_bp.route('/students/<uuid:user_id>', methods=['PUT'])
 @jwt_required
 # @admin_required
 def update_student(user_id):
@@ -123,6 +123,37 @@ def update_student(user_id):
     except Exception as e:
         conn.rollback()
         return jsonify({"error": str(e)}), 500
+
+    finally:
+        cur.close()
+        conn.close()
+
+
+@students_bp.route("/students/<uuid:user_id>", methods=["DELETE"])
+@jwt_required
+def delete_student(user_id):
+    tenant_id = request.current_user_jwt_claims.get('tenant_id')
+    if not tenant_id:
+        return jsonify({"error": "tenant_id missing from JWT"}), 400
+
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            "DELETE FROM Students WHERE user_id=%s AND tenant_id=%s",
+            (user_id, tenant_id)
+        )
+        if cur.rowcount == 0:
+            return jsonify({"error": "Student not found or tenant mismatch"}), 404
+        conn.commit()
+        return jsonify({"message": "Student deleted successfully"}), 200
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": f"Error deleting student: {e}"}), 500
 
     finally:
         cur.close()
