@@ -1,6 +1,6 @@
 from flask import Blueprint
 from routes.login import login
-from routes.users import users
+from routes.users import users_bp
 from routes.tenants import tenant_bp
 from routes.register import register
 from routes.roles import roles_bp
@@ -12,12 +12,13 @@ from routes.employees import employees_bp
 from routes.classes import classes
 from routes.student import student
 from routes.subjects import subjects
+from routes.permissions import permissions_bp
 # Central place to register all route blueprints
 
 
 def register_routes(app):
     app.register_blueprint(login)
-    app.register_blueprint(users)
+    app.register_blueprint(users_bp)
     app.register_blueprint(tenant_bp)
     app.register_blueprint(register)
     app.register_blueprint(roles_bp)
@@ -29,3 +30,4 @@ def register_routes(app):
     app.register_blueprint(classes)
     app.register_blueprint(student)
     app.register_blueprint(subjects)
+    app.register_blueprint(permissions_bp)
