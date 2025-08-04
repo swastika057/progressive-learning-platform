@@ -61,7 +61,7 @@ def get_students():
     cur = conn.cursor()
     try:
         cur.execute("""
-            SELECT u. FROM Students
+            SELECT * FROM Students
         """)
         students = cur.fetchall()
         cols = [desc[0] for desc in cur.description]
