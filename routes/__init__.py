@@ -20,6 +20,7 @@ from routes.indicators import indicators_bp
 from routes.student_grades import student_grades_bp
 from routes.remarks import remarks_bp
 from routes.bill_type import billtypes_bp
+from routes.billing import billing_bp
 # Central place to register all route blueprints
 
 
@@ -45,3 +46,4 @@ def register_routes(app):
     app.register_blueprint(student_grades_bp)
     app.register_blurprint(remarks_bp)
     app.register_blueprint(billtypes_bp)
+    app.register_blueprint(billing_bp)
