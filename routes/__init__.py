@@ -17,6 +17,7 @@ from routes.enrollment import enrollment_bp
 from routes.milestone import milestones_bp
 from routes.indicator_items import indicator_items_bp
 from routes.indicators import indicators_bp
+from routes.student_grades import student_grades_bp
 # Central place to register all route blueprints
 
 
@@ -39,3 +40,4 @@ def register_routes(app):
     app.register_blueprint(milestones_bp)
     app.register_blueprint(indicators_bp)
     app.register_blueprint(indicator_items_bp)
+    app.register_blueprint(student_grades_bp)
