@@ -6,7 +6,7 @@ import uuid
 student_grades_bp = Blueprint('student_grades', __name__)
 
 
-@student_grades_bp.route('/student_grades', methods=['POST'])
+@student_grades_bp.route('/student-grades', methods=['POST'])
 @jwt_required
 def add_student_grade():
     data = request.get_json()
@@ -27,13 +27,14 @@ def add_student_grade():
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute("""
-            INSERT INTO Student_Grades (
-                id, tenant_id, student_id, indicator_item_id, milestone, grade_date, semester, academic_year_id, recorded_by
-            )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (
-            str(uuid.uuid4()), tenant_id, student_id, indicator_item_id, milestone, grade_date, semester, academic_year_id, recorded_by
+                INSERT INTO Student_Grades (
+                    tenant_id, student_id, indicator_item_id, milestone, grade_date, semester, academic_year_id, recorded_by
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+            tenant_id, student_id, indicator_item_id, milestone, grade_date, semester, academic_year_id, recorded_by
         ))
+
         conn.commit()
         return jsonify({"message": "Student grade created successfully"}), 201
     except Exception as e:
@@ -44,7 +45,7 @@ def add_student_grade():
         conn.close()
 
 
-@student_grades_bp.route('/student_grades', methods=['GET'])
+@student_grades_bp.route('/student-grades', methods=['GET'])
 @jwt_required
 def get_student_grades():
     tenant_id = request.args.get(
@@ -73,7 +74,7 @@ def get_student_grades():
         conn.close()
 
 
-@student_grades_bp.route('/student_grades/<grade_id>', methods=['PUT'])
+@student_grades_bp.route('/student-grades/<grade_id>', methods=['PUT'])
 @jwt_required
 def update_student_grade(grade_id):
     data = request.get_json()
@@ -105,7 +106,7 @@ def update_student_grade(grade_id):
         conn.close()
 
 
-@student_grades_bp.route('/student_grades/<grade_id>', methods=['DELETE'])
+@student_grades_bp.route('/student-grades/<grade_id>', methods=['DELETE'])
 @jwt_required
 def delete_student_grade(grade_id):
     try:

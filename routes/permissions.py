@@ -1,9 +1,11 @@
 from flask import Blueprint, request, jsonify
-from database.database import get_db_connection
-from flask_bcrypt import Bcrypt
-from extension import bcrypt
 from utils.decorators import jwt_required
-from datetime import datetime, timedelta, timezone
+from services.permissions_service import (
+    get_all_permissions,
+    create_permission,
+    update_permission_by_id,
+    delete_permission_by_id
+)
 
 permissions_bp = Blueprint('permissions', __name__)
 
@@ -13,24 +15,10 @@ permissions_bp = Blueprint('permissions', __name__)
 # @admin_required
 def get_permissions():
     tenant_id = request.current_user_jwt_claims.get("tenant_id")
-    conn = get_db_connection()
-    try:
-        cur = conn.cursor()
-        cur.execute("""
-            SELECT id, permission_name, description 
-            FROM Permissions
-            WHERE tenant_id = %s
-        """, (tenant_id,))
-
-        permissions = cur.fetchall()
-        result = [{"id": p[0], "permission_name": p[1],
-                   "description": p[2]} for p in permissions]
-        return jsonify(permissions=result), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    finally:
-        cur.close()
-        conn.close()
+    result, error = get_all_permissions(tenant_id)
+    if error:
+        return jsonify({"error": error}), 500
+    return jsonify(permissions=result), 200
 
 
 @permissions_bp.route('/permissions', methods=['POST'])
@@ -46,22 +34,10 @@ def add_permission():
     if not permission_name or not tenant_id:
         return jsonify({"error": "permission_name and tenant_id are required"}), 400
 
-    conn = get_db_connection()
-    try:
-        cur = conn.cursor()
-        cur.execute("""
-            INSERT INTO Permissions (permission_name, description, tenant_id)
-            VALUES (%s, %s, %s)
-            ON CONFLICT (permission_name, tenant_id) DO NOTHING
-        """, (permission_name, description, tenant_id))
-        conn.commit()
-        return jsonify({"message": "Permission added successfully"}), 201
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"error": str(e)}), 500
-    finally:
-        cur.close()
-        conn.close()
+    success, error = create_permission(permission_name, description, tenant_id)
+    if not success:
+        return jsonify({"error": error}), 500
+    return jsonify({"message": "Permission added successfully"}), 201
 
 
 @permissions_bp.route('/permissions/<uuid:permission_id>', methods=['PUT'])
@@ -76,27 +52,14 @@ def update_permission(permission_id):
     if not permission_name or not tenant_id:
         return jsonify({"error": "permission_name is required"}), 400
 
-    conn = get_db_connection()
-    try:
-        cur = conn.cursor()
-        cur.execute("""
-            UPDATE Permissions
-            SET permission_name = %s,
-                description = %s
-            WHERE id = %s AND tenant_id = %s
-        """, (permission_name, description, str(permission_id), tenant_id))
-
-        if cur.rowcount == 0:
+    success, error, not_found = update_permission_by_id(
+        permission_id, permission_name, description, tenant_id)
+    if not success:
+        if not_found:
             return jsonify({"error": "Permission not found"}), 404
+        return jsonify({"error": error}), 500
 
-        conn.commit()
-        return jsonify({"message": "Permission updated successfully"}), 200
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"error": str(e)}), 500
-    finally:
-        cur.close()
-        conn.close()
+    return jsonify({"message": "Permission updated successfully"}), 200
 
 
 @permissions_bp.route('/permissions/<uuid:permission_id>', methods=['DELETE'])
@@ -104,23 +67,11 @@ def update_permission(permission_id):
 # @admin_required
 def delete_permission(permission_id):
     tenant_id = request.current_user_jwt_claims.get("tenant_id")
-
-    conn = get_db_connection()
-    try:
-        cur = conn.cursor()
-        cur.execute("""
-            DELETE FROM Permissions
-            WHERE id = %s AND tenant_id = %s
-        """, (str(permission_id), tenant_id))
-
-        if cur.rowcount == 0:
+    success, error, not_found = delete_permission_by_id(
+        permission_id, tenant_id)
+    if not success:
+        if not_found:
             return jsonify({"error": "Permission not found"}), 404
+        return jsonify({"error": error}), 500
 
-        conn.commit()
-        return jsonify({"message": "Permission deleted successfully"}), 200
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"error": str(e)}), 500
-    finally:
-        cur.close()
-        conn.close()
+    return jsonify({"message": "Permission deleted successfully"}), 200

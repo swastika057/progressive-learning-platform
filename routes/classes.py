@@ -1,19 +1,13 @@
 from flask import Blueprint, request, jsonify
-from database.database import get_db_connection
-from flask_bcrypt import Bcrypt
-from extension import bcrypt
 from utils.decorators import jwt_required
-from datetime import datetime, timedelta, timezone
-
+from services.class_service import add_class, get_classes_by_tenant, update_class, delete_class
 
 classes_bp = Blueprint('classes', __name__)
-# ---------CLASSES--------
 
 
 @classes_bp.route('/classes', methods=['POST'])
 @jwt_required
-# @admin_required
-def add_class():
+def add_class_route():
     data = request.get_json()
     tenant_id = data.get(
         'tenant_id') or request.current_user_jwt_claims.get('tenant_id')
@@ -23,57 +17,65 @@ def add_class():
     teacher_id = data.get('teacher_id')
 
     if not all([tenant_id, academic_year_id, class_name]):
-        return jsonify({"error": "Missing required fields"}), 400
+        return jsonify({"error": "Missing required fields: tenant_id, academic_year_id, class_name"}), 400
 
     try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute("""
-            INSERT INTO Classes (tenant_id, academic_year_id, class_name, section, teacher_id)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (tenant_id, academic_year_id, class_name, section, teacher_id))
-        conn.commit()
+        add_class(tenant_id, academic_year_id, class_name, section, teacher_id)
         return jsonify({"message": "Class created successfully"}), 201
     except Exception as e:
-        conn.rollback()
         return jsonify({"error": str(e)}), 500
-    finally:
-        cur.close()
-        conn.close()
 
 
-@classes_bp .route('/classes', methods=['GET'])
+@classes_bp.route('/classes', methods=['GET'])
 @jwt_required
-# @admin_required
-def get_classes():
+def get_classes_route():
     tenant_id = request.args.get(
         'tenant_id') or request.current_user_jwt_claims.get('tenant_id')
 
     try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        query = """
-            SELECT
-                c.class_id,
-                c.class_name,
-                c.section,
-                c.academic_year_id,
-                c.teacher_id,
-                u.first_name || ' ' || u.last_name AS teacher_name
-            FROM Classes c
-            LEFT JOIN Users u ON c.teacher_id = u.id
-          
-            ORDER BY c.class_name, c.section
-        """
-        cur.execute(query, (tenant_id,))
-        classes = cur.fetchall()
-
-        cols = [desc[0] for desc in cur.description]
-        result = [dict(zip(cols, row)) for row in classes]
-
-        return jsonify(classes=result), 200
+        classes = get_classes_by_tenant(tenant_id)
+        return jsonify(classes=classes), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    finally:
-        cur.close()
-        conn.close()
+
+
+@classes_bp.route('/classes/<uuid:class_id>', methods=['PUT'])
+@jwt_required
+def update_class_route(class_id):
+    data = request.get_json()
+    tenant_id = data.get(
+        'tenant_id') or request.current_user_jwt_claims.get('tenant_id')
+
+    if not tenant_id:
+        return jsonify({"error": "tenant_id is required"}), 400
+
+    academic_year_id = data.get('academic_year_id')
+    class_name = data.get('class_name')
+    section = data.get('section')
+    teacher_id = data.get('teacher_id')
+
+    try:
+        updated = update_class(
+            class_id, tenant_id, academic_year_id, class_name, section, teacher_id)
+        if updated == 0:
+            return jsonify({"error": "Class not found or tenant mismatch"}), 404
+        return jsonify({"message": "Class updated successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@classes_bp.route('/classes/<uuid:class_id>', methods=['DELETE'])
+@jwt_required
+def delete_class_route(class_id):
+    tenant_id = request.current_user_jwt_claims.get('tenant_id')
+
+    if not tenant_id:
+        return jsonify({"error": "tenant_id missing from JWT"}), 400
+
+    try:
+        deleted = delete_class(class_id, tenant_id)
+        if deleted == 0:
+            return jsonify({"error": "Class not found or tenant mismatch"}), 404
+        return jsonify({"message": "Class deleted successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
