@@ -1,40 +1,23 @@
 from flask import Blueprint, request, jsonify
-from database.database import get_db_connection
-from extension import bcrypt
 from utils.decorators import jwt_required
-from datetime import datetime, timedelta, timezone
+from services.roles_services import (
+    fetch_roles, create_role, update_role_by_id, delete_role_by_id)
 
-roles_bp = Blueprint('Roles', __name__)
+
+roles_bp = Blueprint('roles', __name__)
 
 
-@roles_bp.route('/Roles', methods=['GET'])
+@roles_bp.route('/roles', methods=['GET'])
 @jwt_required
-def roles():
-    conn = get_db_connection()
-    if not conn:
-        return jsonify({"error": "Database connection failed"}), 500
-    try:
-        cur = conn.cursor()
-        cur.execute(
-            """SELECT id,role_name ,tenant_id,description from roles """)
-        roles_data = cur.fetchall()
-        roles_list = []
-        for role in roles_data:
-            roles_list.append({
-                "id": role[0],
-                "roles_name": role[1],
-                "tenant_id": role[2],
-                "description": role[3]
-            })
-        return jsonify(roles=roles_list), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    finally:
-        cur.close()
-        conn.close()
+def get_roles():
+
+    roles_data, error = fetch_roles()
+    if error:
+        return jsonify({"error": error}), 500
+    return jsonify({"roles": roles_data}), 200
 
 
-@roles_bp.route('/Roles/add', methods=['POST'])
+@roles_bp.route('/roles', methods=['POST'])
 @jwt_required
 # @admin_required
 def add_roles():
@@ -48,27 +31,16 @@ def add_roles():
     if not role_name or not tenant_id:
         return jsonify({"error": "Role name and tenant_id are required."}), 400
 
-    conn = get_db_connection()
-    if not conn:
-        return jsonify({"error": "Database connection failed"}), 500
-    try:
-        cur = conn.cursor()
-        cur.execute("""INSERT INTO Roles(role_name,description,tenant_id)VALUES(%s,%s,%s)""", (
-            role_name,  description, tenant_id))
-        conn.commit()
-        return jsonify({"message": "Roles added successfully!"}), 201
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"error": str({e})}), 500
-    finally:
-        cur.close()
-        conn.close()
+    message, error = create_role(role_name, description, tenant_id)
+    if error:
+        return jsonify({"error": error}), 500
+    return jsonify({"message": message}), 201
 
 
-@roles_bp.route('/Roles/update/<uuid:role_id>', methods=['PUT'])
+@roles_bp.route('/roles/<uuid:role_id>', methods=['PUT'])
 @jwt_required
 # @admin_required
-def update_roles(role_id):
+def update_role(role_id):
     data = request.get_json()
     if not data:
         return jsonify({"error": "Missing or invalid JSON"}), 400
@@ -81,47 +53,18 @@ def update_roles(role_id):
     if not role_name or not tenant_id:
         return jsonify({"error": "Role name and tenant_id are required."}), 400
 
-    conn = get_db_connection()
-    if not conn:
-        return jsonify({"error": "Database connection failed!"}), 500
-
-    try:
-        cur = conn.cursor()
-        cur.execute("""
-            UPDATE Roles SET
-            role_name = %s,
-            description = %s
-            WHERE tenant_id = %s AND id = %s
-        """, (role_name, description, str(tenant_id), str(role_id)))
-        conn.commit()
-        return jsonify({"message": "Role updated successfully!"}), 200
-
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"error": str(e)}), 500
-
-    finally:
-        cur.close()
-        conn.close()
+    message, error = update_role_by_id(
+        role_id, role_name, description, tenant_id)
+    if error:
+        return jsonify({"error": error}), 500
+    return jsonify({"message": message}), 200
 
 
-@roles_bp.route('/Roles/delete/<uuid:role_id>', methods=['DELETE'])
+@roles_bp.route('/roles/<uuid:role_id>', methods=['DELETE'])
 @jwt_required
 # @admin_required
-def roles_del(role_id):
-    conn = get_db_connection()
-    if not conn:
-        return jsonify({"error": "Database connection failed"}), 500
-    try:
-        cur = conn.cursor()
-        cur.execute("DELETE FROM roles where id=%s", (str(role_id),))
-        conn.commit()
-        return jsonify({"message": "Role deleted successfully"}), 200
-
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"error": str(e)}), 500
-
-    finally:
-        cur.close()
-        conn.close()
+def del_role(role_id):
+    message, error = delete_role_by_id(role_id)
+    if error:
+        return jsonify({"error": error}), 500
+    return jsonify({"message": message}), 200
